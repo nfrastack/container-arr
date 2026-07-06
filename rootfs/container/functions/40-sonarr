@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+sonarr_bootstrap_filesystems() {
+    print_debug "Bootstrapping filesystem layout"
+    create_folder "${SONARR_CONFIG_PATH}" "${SONARR_USER}":"${SONARR_GROUP}" 775
+
+    if [ "${SONARR_LOG_TYPE,,}" = "file" ] || [ "${SONARR_LOG_TYPE,,}" = "both" ] ; then
+        create_folder "${SONARR_LOG_PATH}" "${SONARR_USER}":"${SONARR_GROUP}" 775
+        create_logrotate sonarr "${SONARR_LOG_PATH%/}/${SONARR_LOG_FILE}" "${SONARR_USER}" "${SONARR_USER}" "${SONARR_GROUP}"
+    fi
+}
+
+sonarr_configure_application() {
+    local _config_file="${SONARR_CONFIG_PATH%/}/config.xml"
+
+    _sonarr_xml_set() {
+        xmlstarlet ed -L \
+            -d "/Config/${1}" \
+            -s "/Config" -t elem -n "${1}" -v "${2}" \
+            "${_config_file}"
+    }
+
+    if [ ! -f "${_config_file}" ] ; then
+        print_notice "Generating initial configuration at '${_config_file}'"
+        write_file "${SONARR_USER}":"${SONARR_GROUP}"@"${_config_file}":640 << EOF
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+  <BindAddress>${SONARR_LISTEN_IP}</BindAddress>
+  <Port>${SONARR_LISTEN_PORT}</Port>
+  <SslPort>${SONARR_LISTEN_SSL_PORT}</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${SONARR_API_KEY}</ApiKey>
+  <AuthenticationMethod>None</AuthenticationMethod>
+  <AuthenticationRequired>Enabled</AuthenticationRequired>
+  <Branch>${SONARR_UPDATE_BRANCH}</Branch>
+  <LogLevel>${SONARR_LOG_LEVEL}</LogLevel>
+  <UrlBase>${SONARR_URL_BASE}</UrlBase>
+  <InstanceName>${SONARR_INSTANCE_NAME}</InstanceName>
+</Config>
+EOF
+    else
+        print_debug "Updating existing configuration at '${_config_file}'"
+        _sonarr_xml_set BindAddress            "${SONARR_LISTEN_IP}"
+        _sonarr_xml_set Port                   "${SONARR_LISTEN_PORT}"
+        _sonarr_xml_set SslPort                "${SONARR_LISTEN_SSL_PORT}"
+        _sonarr_xml_set EnableSsl              "False"
+        _sonarr_xml_set LaunchBrowser          "False"
+        _sonarr_xml_set Branch                 "${SONARR_UPDATE_BRANCH}"
+        _sonarr_xml_set LogLevel               "${SONARR_LOG_LEVEL}"
+        _sonarr_xml_set UrlBase                "${SONARR_URL_BASE}"
+        _sonarr_xml_set InstanceName           "${SONARR_INSTANCE_NAME}"
+        [ -n "${SONARR_API_KEY}" ] && _sonarr_xml_set ApiKey "${SONARR_API_KEY}"
+    fi
+
+    unset -f _sonarr_xml_set
+}

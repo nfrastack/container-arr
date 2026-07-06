@@ -1,0 +1,30 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+SERVICE_NAME="radarr"
+prepare_service 20-arr
+prepare_service 50-radarr
+
+check_container_initialized
+check_service_initialized init
+
+liftoff
+
+print_start "Starting Radarr $(grep -o "ADD: Radarr v.* |" /container/build/${IMAGE_NAME/\//_}/build.log | awk '{print $3}')"
+case "${RADARR_LOG_TYPE,,}" in
+    file)
+        exec 1>>"${RADARR_LOG_PATH%/}/${RADARR_LOG_FILE}" 2>&1
+        ;;
+    both)
+        exec 1> >(tee -a "${RADARR_LOG_PATH%/}/${RADARR_LOG_FILE}") 2>&1
+        ;;
+esac
+cd /opt/radarr
+
+exec s6-setuidgid "${RADARR_USER}" \
+    /opt/radarr/Radarr \
+        -nobrowser \
+        --data="${RADARR_CONFIG_PATH}"

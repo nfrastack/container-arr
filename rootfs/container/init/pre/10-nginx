@@ -1,0 +1,47 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+prepare_service 10-nginx
+source /container/defaults/20-arr
+
+SERVICE_NAME="arr"
+
+transform_var file MODE
+
+if [ "${MODE,,}" = "all" ]; then
+    export MODE="qbittorrent,sonarr,radarr,prowlarr,sonarr_alt"
+fi
+
+for mode in $(echo "${MODE,,}" | tr "," "\n"); do
+    case "${mode,,}" in
+         "prowlarr" | "radarr" | "sonarr" | "sonarr_alt")
+            print_info "Enabling Container Mode for: ${mode^}"
+            _container_build_env "10-nginx/ENABLE_NGINX=TRUE"
+            _container_build_env "10-nginx/NGINX_ENABLE_APPLICATION_CONFIGURATION=TRUE"
+            _container_build_env "20-arr/ENABLE_${mode^^}=TRUE"
+            _container_build_env "10-nginx/NGINX_SITE_${mode^^}_MODE=proxy"
+            _container_build_env "10-nginx/NGINX_SITE_${mode^^}_PROXY_URL=http://localhost:[env:${mode^^}_LISTEN_PORT]"
+            NGINX_SITE_ENABLED+=",${mode,,}"
+        ;;
+        "qbittorrent" )
+            print_info "Enabling Container Mode for: ${mode^}"
+            _container_build_env "20-arr/ENABLE_${mode^^}=TRUE"
+            _container_build_env "10-nginx/ENABLE_NGINX=TRUE"
+            _container_build_env "10-nginx/NGINX_ENABLE_APPLICATION_CONFIGURATION=TRUE"
+            _container_build_env "10-nginx/NGINX_SITE_QBITTORRENT_MODE=proxy"
+            _container_build_env "10-nginx/NGINX_SITE_QBITTORRENT_PROXY_URL=[env:QBITTORRENT_UI_LISTEN_PROTOCOL]://localhost:[env:QBITTORRENT_UI_LISTEN_PORT]"
+            NGINX_SITE_ENABLED+=",${mode,,}"
+        ;;
+        *)
+            print_error "Unknown 'MODE' environment variable - exitting.."
+            exit 1
+        ;;
+    esac
+done
+NGINX_SITE_ENABLED="${NGINX_SITE_ENABLED#,}"
+_container_build_env "10-nginx/NGINX_SITE_ENABLED=${NGINX_SITE_ENABLED}"
+
+liftoff

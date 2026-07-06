@@ -1,0 +1,27 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+prepare_service 20-arr,30-prowlarr
+SERVICE_NAME="prowlarr"
+
+source /container/state/arr/mode
+
+if var_false "${ENABLE_PROWLARR}" ; then
+    print_debug "[prowlarr] Disabled via ENABLE_PROWLARR"
+    service_stop $(basename $0)
+    liftoff
+    exit 0
+fi
+
+call prowlarr_bootstrap_filesystems
+
+if [ "${PROWLARR_SETUP_TYPE,,}" = "auto" ] ; then
+    call prowlarr_configure_application
+else
+    print_notice "[prowlarr] Skipping config generation as PROWLARR_SETUP_TYPE='${PROWLARR_SETUP_TYPE}'"
+fi
+
+liftoff

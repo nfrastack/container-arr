@@ -1,0 +1,29 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+prepare_service 20-arr,50-radarr
+SERVICE_NAME="radarr"
+
+source /container/state/arr/mode
+
+if var_false "${ENABLE_RADARR}" ; then
+    print_debug "[radarr] Disabled via ENABLE_RADARR"
+    service_stop $(basename $0)
+    liftoff
+    exit 0
+fi
+
+if check_container_restarted ; then
+    call radarr_bootstrap_filesystems
+
+    if [ "${RADARR_SETUP_TYPE,,}" = "auto" ] ; then
+        call radarr_configure_application
+    else
+        print_notice "[radarr] Skipping config generation as RADARR_SETUP_TYPE='${RADARR_SETUP_TYPE}'"
+    fi
+fi
+
+liftoff

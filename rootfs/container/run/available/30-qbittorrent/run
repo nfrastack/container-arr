@@ -1,0 +1,31 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+SERVICE_NAME="qbittorrent"
+prepare_service 20-arr,30-qbittorrent
+
+check_container_initialized
+check_service_initialized init
+
+liftoff
+
+print_start "Starting qBittorrent $(grep -o "ADD: qBittorrent v.* |" /container/build/${IMAGE_NAME/\//_}/build.log | awk '{print $3}')"
+
+case "${QBITTORRENT_LOG_TYPE,,}" in
+    file)
+        exec 1>>"${QBITTORRENT_LOG_PATH%/}/${QBITTORRENT_LOG_FILE}" 2>&1
+        ;;
+    both)
+        exec 1> >(tee -a "${QBITTORRENT_LOG_PATH%/}/${QBITTORRENT_LOG_FILE}") 2>&1
+        ;;
+esac
+
+exec s6-setuidgid "${QBITTORRENT_USER}" \
+    qbittorrent-nox \
+        --profile="${QBITTORRENT_CONFIG_PATH%/}" \
+        --confirm-legal-notice \
+        --webui-port="${QBITTORRENT_UI_LISTEN_PORT}" \
+        --torrenting-port="${QBITTORRENT_TORRENT_LISTEN_PORT}"

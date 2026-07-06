@@ -1,0 +1,31 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+SERVICE_NAME="prowlarr"
+prepare_service 20-arr
+prepare_service 30-prowlarr
+
+check_container_initialized
+check_service_initialized init
+
+liftoff
+
+print_start "Starting Prowlarr $(grep -o "ADD: Prowlarr v.* |" /container/build/${IMAGE_NAME/\//_}/build.log | awk '{print $3}')"
+case "${PROWLARR_LOG_TYPE,,}" in
+    file)
+        exec 1>>"${PROWLARR_LOG_PATH%/}/${PROWLARR_LOG_FILE}" 2>&1
+        ;;
+    both)
+        exec 1> >(tee -a "${PROWLARR_LOG_PATH%/}/${PROWLARR_LOG_FILE}") 2>&1
+        ;;
+esac
+
+cd /opt/prowlarr
+
+exec s6-setuidgid "${PROWLARR_USER}" \
+    /opt/prowlarr/Prowlarr \
+        -nobrowser \
+        --data="${PROWLARR_CONFIG_PATH}"

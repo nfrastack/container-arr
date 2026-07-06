@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+arr_setup_container_mode() {
+    if [ -f "/container/state/arr/mode" ]; then
+        print_debug "Importing MODE environment generated variables"
+        source /container/state/arr/mode
+    else
+        create_folder /container/state/arr
+        modes=$(echo "${MODE}" | tr "," "\n")
+        for mode in $modes ; do
+            case "${mode,,}" in
+                "qbittorrent" )
+                    print_debug "Enabling Container Mode for: QBITTORRENT"
+                    echo "ENABLE_QBITTORRENT=TRUE" | write_file -a /container/state/arr/mode
+                ;;
+                "standalone" | "manual" )
+                    print_debug "Enabling Container Mode for: STANDALONE"
+                    echo "ENABLE_STANDALONE=TRUE" | write_file -a /container/state/arr/mode
+                ;;
+                "sonarr" )
+                    print_debug "Enabling Container Mode for: SONARR"
+                    echo "ENABLE_SONARR=TRUE" | write_file -a /container/state/arr/mode
+                ;;
+                "radarr" )
+                    print_debug "Enabling Container Mode for: RADARR"
+                    echo "ENABLE_RADARR=TRUE" | write_file -a /container/state/arr/mode
+                ;;
+                "prowlarr" )
+                    print_debug "Enabling Container Mode for: PROWLARR"
+                    echo "ENABLE_PROWLARR=TRUE" | write_file -a /container/state/arr/mode
+                ;;
+                "sonarr_alt" )
+                    print_debug "Enabling Container Mode for: SONARR_ALT"
+                    echo "ENABLE_SONARR_ALT=TRUE" | write_file -a /container/state/arr/mode
+                ;;
+                *)
+                    print_error "Unknown 'MODE' environment variable - exitting.."
+                    exit 1
+                ;;
+            esac
+        done
+        source /container/state/arr/mode
+    fi
+}

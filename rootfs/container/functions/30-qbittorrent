@@ -1,0 +1,116 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+qbittorrent_get_config_path() {
+    if [ "${QBITTORRENT_CONFIG_PATH%/}" = "${CONFIG_PATH%/}" ]; then
+        echo "${CONFIG_PATH%/}/qBittorrent/"
+    else
+        echo "${QBITTORRENT_CONFIG_PATH}"
+    fi
+}
+
+qbittorrent_bootstrap_filesystems() {
+    print_debug "[qbittorrent] Bootstrapping filesystem layout"
+
+    create_folder \
+        "$(qbittorrent_get_config_path) \
+         ${QBITTORRENT_SAVE_PATH} \
+         ${QBITTORRENT_TEMP_PATH}" \
+        "${QBITTORRENT_USER}":"${QBITTORRENT_GROUP}" 775
+
+    if [ "${QBITTORRENT_LOG_TYPE,,}" = "file" ] || [ "${QBITTORRENT_LOG_TYPE,,}" = "both" ] ; then
+        create_folder "${QBITTORRENT_LOG_PATH}" "${QBITTORRENT_USER}":"${QBITTORRENT_GROUP}" 775
+        create_logrotate qbittorrent "${QBITTORRENT_LOG_PATH%/}/${QBITTORRENT_LOG_FILE}" qbittorrent "${QBITTORRENT_USER}" "${QBITTORRENT_GROUP}"
+    fi
+}
+
+qbittorrent_configure_application() {
+    local _config_dir="${QBITTORRENT_CONFIG_PATH%/}/qBittorrent/config"
+    local _config_file="${_config_dir}/qBittorrent.conf"
+
+    create_folder "${_config_dir}" "${QBITTORRENT_USER}":"${QBITTORRENT_GROUP}" 750
+
+    if [ -f "${_config_dir}"/lockfile ]; then
+        print_notice "[qbittorrent] Cleaning up stale lockfile"
+        rm -f "${_config_dir}"/lockfile
+    fi
+
+    if [ -f "${_config_dir}"/ipc-socket ]; then
+        print_notice "[qbittorrent] Cleaning up stale IPC socket"
+        rm -f "${_config_dir}"/ipc-socket
+    fi
+
+    _ini_upsert() {
+        local _f="$1" _s="$2" _k="$3" _v="$4"
+        local _kp="${_k//\\/\\\\}"
+        local _vr="${_v//\\/\\\\}"
+        _vr="${_vr//&/\\&}"
+
+        if ! [ -f "$_f" ]; then
+            printf '[%s]\n%s=%s\n' "$_s" "$_k" "$_v" > "$_f"
+            return
+        fi
+
+        if grep -q "^\[${_s}\]" "$_f" 2>/dev/null; then
+            if sed -n "/^\[${_s}\]/,/^\[/{/^${_k}=/p}" "$_f" | grep -q .; then
+                sed -i "/^\[${_s}\]/,/^\[/ s|^${_kp}=.*|${_k}=${_vr}|" "$_f"
+            else
+                sed -i "/^\[${_s}\]/a\\${_k}=${_vr}" "$_f"
+            fi
+        else
+            printf '\n[%s]\n%s=%s\n' "$_s" "$_k" "$_v" >> "$_f"
+        fi
+    }
+
+    _ini_delete() {
+        local _f="$1" _s="$2" _k="$3"
+        [ -f "$_f" ] || return
+        grep -q "^\[${_s}\]" "$_f" 2>/dev/null || return
+        sed -i "/^\[${_s}\]/,/^\[/{/^${_k}=/d}" "$_f"
+    }
+
+    _qb_set() {
+        local _var="$1" _section="$2" _key="$3"
+        local _transform="${4:-none}"
+        local _val
+
+        case "$_transform" in
+            lower) _val="${_var,,}" ;;
+            path) _val="${_var%/}/" ;;
+            none) _val="$_var" ;;
+        esac
+
+        if [ -n "$_val" ]; then
+            _ini_upsert "$_config_file" "$_section" "$_key" "$_val"
+        elif [ -f "$_config_file" ]; then
+            _ini_delete "$_config_file" "$_section" "$_key"
+        fi
+    }
+
+    if [ ! -f "$_config_file" ]; then
+        print_notice "Generating initial configuration at '${_config_file}'"
+
+        write_file "${QBITTORRENT_USER}":"${QBITTORRENT_GROUP}"@"${_config_file}":640 << EOF
+[LegalNotice]
+Accepted=true
+EOF
+
+        _qb_set "${QBITTORRENT_SAVE_PATH}" BitTorrent 'Session\DefaultSavePath' path
+        _qb_set "${QBITTORRENT_TEMP_PATH}" BitTorrent 'Session\TempPath' path
+        _qb_set "${QBITTORRENT_TORRENT_LISTEN_PORT}" BitTorrent 'Session\Port'
+        _qb_set "${QBITTORRENT_TORRENT_SSL_PORT}" BitTorrent 'Session\SSL\Port'
+        _qb_set "${QBITTORRENT_UI_LISTEN_PORT}" Preferences 'WebUI\Port'
+        _qb_set "${QBITTORRENT_REVERSE_PROXY_SUPPORT_ENABLED}" Preferences 'WebUI\ReverseProxySupportEnabled' lower
+    else
+        print_notice "Updating existing configuration at '${_config_file}'"
+        _qb_set "${QBITTORRENT_SAVE_PATH}" BitTorrent 'Session\DefaultSavePath' path
+        _qb_set "${QBITTORRENT_TEMP_PATH}" BitTorrent 'Session\TempPath' path
+        _qb_set "${QBITTORRENT_TORRENT_LISTEN_PORT}" BitTorrent 'Session\Port'
+        _qb_set "${QBITTORRENT_TORRENT_SSL_PORT}" BitTorrent 'Session\SSL\Port'
+        _qb_set "${QBITTORRENT_UI_LISTEN_PORT}" Preferences 'WebUI\Port'
+        _qb_set "${QBITTORRENT_REVERSE_PROXY_SUPPORT_ENABLED}" Preferences 'WebUI\ReverseProxySupportEnabled' lower
+    fi
+
+    unset -f _ini_upsert _ini_delete _qb_set
+}

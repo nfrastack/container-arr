@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+prowlarr_bootstrap_filesystems() {
+    print_debug "Bootstrapping filesystem layout"
+    create_folder "${PROWLARR_CONFIG_PATH}" "${PROWLARR_USER}":"${PROWLARR_GROUP}" 775
+
+    if [ "${PROWLARR_LOG_TYPE,,}" = "file" ] || [ "${PROWLARR_LOG_TYPE,,}" = "both" ] ; then
+        create_folder "${PROWLARR_LOG_PATH}" "${PROWLARR_USER}":"${PROWLARR_GROUP}" 775
+        create_logrotate prowlarr "${PROWLARR_LOG_PATH%/}/${PROWLARR_LOG_FILE}" "${PROWLARR_USER}" "${PROWLARR_USER}" "${PROWLARR_GROUP}"
+    fi
+}
+
+prowlarr_configure_application() {
+    local _config_file="${PROWLARR_CONFIG_PATH%/}/config.xml"
+
+    _prowlarr_xml_set() {
+        xmlstarlet ed -L \
+            -d "/Config/${1}" \
+            -s "/Config" -t elem -n "${1}" -v "${2}" \
+            "${_config_file}"
+    }
+
+    if [ ! -f "${_config_file}" ] ; then
+        print_notice "Generating initial configuration at '${_config_file}'"
+        write_file "${PROWLARR_USER}":"${PROWLARR_GROUP}"@"${_config_file}":640 << EOF
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+  <BindAddress>${PROWLARR_LISTEN_IP}</BindAddress>
+  <Port>${PROWLARR_LISTEN_PORT}</Port>
+  <SslPort>${PROWLARR_LISTEN_SSL_PORT}</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${PROWLARR_API_KEY}</ApiKey>
+  <AuthenticationMethod>None</AuthenticationMethod>
+  <AuthenticationRequired>Enabled</AuthenticationRequired>
+  <Branch>${PROWLARR_UPDATE_BRANCH}</Branch>
+  <LogLevel>${PROWLARR_LOG_LEVEL}</LogLevel>
+  <UrlBase>${PROWLARR_URL_BASE}</UrlBase>
+  <InstanceName>${PROWLARR_INSTANCE_NAME}</InstanceName>
+</Config>
+EOF
+    else
+        print_debug "[prowlarr] Updating existing configuration at '${_config_file}'"
+        _prowlarr_xml_set BindAddress            "${PROWLARR_LISTEN_IP}"
+        _prowlarr_xml_set Port                   "${PROWLARR_LISTEN_PORT}"
+        _prowlarr_xml_set SslPort                "${PROWLARR_LISTEN_SSL_PORT}"
+        _prowlarr_xml_set EnableSsl              "False"
+        _prowlarr_xml_set LaunchBrowser          "False"
+        _prowlarr_xml_set Branch                 "${PROWLARR_UPDATE_BRANCH}"
+        _prowlarr_xml_set LogLevel               "${PROWLARR_LOG_LEVEL}"
+        _prowlarr_xml_set UrlBase                "${PROWLARR_URL_BASE}"
+        _prowlarr_xml_set InstanceName           "${PROWLARR_INSTANCE_NAME}"
+        [ -n "${PROWLARR_API_KEY}" ] && _prowlarr_xml_set ApiKey "${PROWLARR_API_KEY}"
+    fi
+
+    unset -f _prowlarr_xml_set
+}

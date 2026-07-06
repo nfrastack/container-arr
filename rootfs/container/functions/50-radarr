@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+radarr_bootstrap_filesystems() {
+    print_debug "Bootstrapping filesystem layout"
+    create_folder "${RADARR_CONFIG_PATH}" "${RADARR_USER}":"${RADARR_GROUP}" 775
+
+    if [ "${RADARR_LOG_TYPE,,}" = "file" ] || [ "${RADARR_LOG_TYPE,,}" = "both" ] ; then
+        create_folder "${RADARR_LOG_PATH}" "${RADARR_USER}":"${RADARR_GROUP}" 775
+        create_logrotate radarr "${RADARR_LOG_PATH%/}/${RADARR_LOG_FILE}" "${RADARR_USER}" "${RADARR_USER}" "${RADARR_GROUP}"
+    fi
+}
+
+radarr_configure_application() {
+    local _config_file="${RADARR_CONFIG_PATH%/}/config.xml"
+
+    _radarr_xml_set() {
+        xmlstarlet ed -L \
+            -d "/Config/${1}" \
+            -s "/Config" -t elem -n "${1}" -v "${2}" \
+            "${_config_file}"
+    }
+
+    if [ ! -f "${_config_file}" ] ; then
+        print_notice "Generating initial configuration at '${_config_file}'"
+        write_file "${RADARR_USER}":"${RADARR_GROUP}"@"${_config_file}":640 << EOF
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+  <BindAddress>${RADARR_LISTEN_IP}</BindAddress>
+  <Port>${RADARR_LISTEN_PORT}</Port>
+  <SslPort>${RADARR_LISTEN_SSL_PORT}</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${RADARR_API_KEY}</ApiKey>
+  <AuthenticationMethod>None</AuthenticationMethod>
+  <AuthenticationRequired>Enabled</AuthenticationRequired>
+  <Branch>${RADARR_UPDATE_BRANCH}</Branch>
+  <LogLevel>${RADARR_LOG_LEVEL}</LogLevel>
+  <UrlBase>${RADARR_URL_BASE}</UrlBase>
+  <InstanceName>${RADARR_INSTANCE_NAME}</InstanceName>
+</Config>
+EOF
+    else
+        print_debug "[radarr] Updating existing configuration at '${_config_file}'"
+        _radarr_xml_set BindAddress            "${RADARR_LISTEN_IP}"
+        _radarr_xml_set Port                   "${RADARR_LISTEN_PORT}"
+        _radarr_xml_set SslPort                "${RADARR_LISTEN_SSL_PORT}"
+        _radarr_xml_set EnableSsl              "False"
+        _radarr_xml_set LaunchBrowser          "False"
+        _radarr_xml_set Branch                 "${RADARR_UPDATE_BRANCH}"
+        _radarr_xml_set LogLevel               "${RADARR_LOG_LEVEL}"
+        _radarr_xml_set UrlBase                "${RADARR_URL_BASE}"
+        _radarr_xml_set InstanceName           "${RADARR_INSTANCE_NAME}"
+        [ -n "${RADARR_API_KEY}" ] && _radarr_xml_set ApiKey "${RADARR_API_KEY}"
+    fi
+
+    unset -f _radarr_xml_set
+}

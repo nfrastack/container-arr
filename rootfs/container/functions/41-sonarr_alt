@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+sonarr_alt_remap_variables() {
+    # Unset any primary SONARR_* (single underscore) vars that could conflict
+    unset SONARR_LISTEN_PORT SONARR_LISTEN_IP SONARR_LISTEN_SSL_PORT \
+          SONARR_CONFIG_PATH SONARR_LOG_PATH SONARR_LOG_FILE SONARR_LOG_LEVEL \
+          SONARR_LOG_TYPE SONARR_API_KEY SONARR_URL_BASE SONARR_INSTANCE_NAME \
+          SONARR_UPDATE_BRANCH SONARR_UPDATE_MECHANISM SONARR_UPDATE_AUTOMATICALLY \
+          SONARR_ENABLE_SSL SONARR_ENABLE_LAUNCH_BROWSER SONARR_AUTH_METHOD \
+          SONARR_AUTH_REQUIRED SONARR_SETUP_TYPE
+
+    # Map SONARR_ALT_* (single underscore) to SONARR_* for container scripts
+    export SONARR_LISTEN_PORT="${SONARR_ALT_LISTEN_PORT}"
+    export SONARR_LISTEN_IP="${SONARR_ALT_LISTEN_IP}"
+    export SONARR_LISTEN_SSL_PORT="${SONARR_ALT_LISTEN_SSL_PORT}"
+    export SONARR_CONFIG_PATH="${SONARR_ALT_CONFIG_PATH}"
+    export SONARR_LOG_PATH="${SONARR_ALT_LOG_PATH}"
+    export SONARR_LOG_FILE="${SONARR_ALT_LOG_FILE}"
+    export SONARR_LOG_LEVEL="${SONARR_ALT_LOG_LEVEL}"
+    export SONARR_LOG_TYPE="${SONARR_ALT_LOG_TYPE}"
+    export SONARR_API_KEY="${SONARR_ALT_API_KEY}"
+    export SONARR_URL_BASE="${SONARR_ALT_URL_BASE}"
+    export SONARR_INSTANCE_NAME="${SONARR_ALT_INSTANCE_NAME}"
+    export SONARR_UPDATE_BRANCH="${SONARR_ALT_UPDATE_BRANCH}"
+    export SONARR_UPDATE_MECHANISM="${SONARR_ALT_UPDATE_MECHANISM}"
+    export SONARR_UPDATE_AUTOMATICALLY="${SONARR_ALT_UPDATE_AUTOMATICALLY}"
+    export SONARR_ENABLE_SSL="${SONARR_ALT_ENABLE_SSL}"
+    export SONARR_ENABLE_LAUNCH_BROWSER="${SONARR_ALT_ENABLE_LAUNCH_BROWSER}"
+    export SONARR_AUTH_METHOD="${SONARR_ALT_AUTH_METHOD}"
+    export SONARR_AUTH_REQUIRED="${SONARR_ALT_AUTH_REQUIRED}"
+    export SONARR_SETUP_TYPE="${SONARR_ALT_SETUP_TYPE}"
+
+    # Unset all native Sonarr double-underscore env vars to prevent conflicts
+    unset SONARR__APP__INSTANCENAME SONARR__APP__THEME SONARR__APP__LAUNCHBROWSER \
+          SONARR__AUTH__APIKEY SONARR__AUTH__ENABLED SONARR__AUTH__METHOD SONARR__AUTH__REQUIRED \
+          SONARR__LOG__LEVEL SONARR__LOG__FILTERSENTRYEVENTS SONARR__LOG__ROTATE \
+          SONARR__LOG__SIZELIMIT SONARR__LOG__SQL SONARR__LOG__CONSOLELEVEL \
+          SONARR__LOG__CONSOLEFORMAT SONARR__LOG__ANALYTICSENABLED \
+          SONARR__LOG__SYSLOGSERVER SONARR__LOG__SYSLOGPORT SONARR__LOG__SYSLOGLEVEL \
+          SONARR__LOG__DBENABLED \
+          SONARR__POSTGRES__HOST SONARR__POSTGRES__PORT SONARR__POSTGRES__USER \
+          SONARR__POSTGRES__PASSWORD SONARR__POSTGRES__MAINDB SONARR__POSTGRES__LOGDB \
+          SONARR__SERVER__URLBASE SONARR__SERVER__BINDADDRESS SONARR__SERVER__PORT \
+          SONARR__SERVER__ENABLESSL SONARR__SERVER__SSLPORT SONARR__SERVER__SSLCERTPATH \
+          SONARR__SERVER__SSLCERTPASSWORD \
+          SONARR__UPDATE__MECHANISM SONARR__UPDATE__AUTOMATICALLY SONARR__UPDATE__SCRIPTPATH \
+          SONARR__UPDATE__BRANCH
+
+    # Map SONARR_ALT__* (double underscore) to SONARR__* for Sonarr's native env config
+    [ -n "${SONARR_ALT__APP__INSTANCENAME+x}" ]   && export SONARR__APP__INSTANCENAME="${SONARR_ALT__APP__INSTANCENAME}"
+    [ -n "${SONARR_ALT__APP__THEME+x}" ]           && export SONARR__APP__THEME="${SONARR_ALT__APP__THEME}"
+    [ -n "${SONARR_ALT__APP__LAUNCHBROWSER+x}" ]   && export SONARR__APP__LAUNCHBROWSER="${SONARR_ALT__APP__LAUNCHBROWSER}"
+    [ -n "${SONARR_ALT__AUTH__APIKEY+x}" ]         && export SONARR__AUTH__APIKEY="${SONARR_ALT__AUTH__APIKEY}"
+    [ -n "${SONARR_ALT__AUTH__ENABLED+x}" ]        && export SONARR__AUTH__ENABLED="${SONARR_ALT__AUTH__ENABLED}"
+    [ -n "${SONARR_ALT__AUTH__METHOD+x}" ]         && export SONARR__AUTH__METHOD="${SONARR_ALT__AUTH__METHOD}"
+    [ -n "${SONARR_ALT__AUTH__REQUIRED+x}" ]       && export SONARR__AUTH__REQUIRED="${SONARR_ALT__AUTH__REQUIRED}"
+    [ -n "${SONARR_ALT__LOG__LEVEL+x}" ]           && export SONARR__LOG__LEVEL="${SONARR_ALT__LOG__LEVEL}"
+    [ -n "${SONARR_ALT__LOG__FILTERSENTRYEVENTS+x}" ] && export SONARR__LOG__FILTERSENTRYEVENTS="${SONARR_ALT__LOG__FILTERSENTRYEVENTS}"
+    [ -n "${SONARR_ALT__LOG__ROTATE+x}" ]          && export SONARR__LOG__ROTATE="${SONARR_ALT__LOG__ROTATE}"
+    [ -n "${SONARR_ALT__LOG__SIZELIMIT+x}" ]       && export SONARR__LOG__SIZELIMIT="${SONARR_ALT__LOG__SIZELIMIT}"
+    [ -n "${SONARR_ALT__LOG__SQL+x}" ]             && export SONARR__LOG__SQL="${SONARR_ALT__LOG__SQL}"
+    [ -n "${SONARR_ALT__LOG__CONSOLELEVEL+x}" ]    && export SONARR__LOG__CONSOLELEVEL="${SONARR_ALT__LOG__CONSOLELEVEL}"
+    [ -n "${SONARR_ALT__LOG__CONSOLEFORMAT+x}" ]   && export SONARR__LOG__CONSOLEFORMAT="${SONARR_ALT__LOG__CONSOLEFORMAT}"
+    [ -n "${SONARR_ALT__LOG__ANALYTICSENABLED+x}" ] && export SONARR__LOG__ANALYTICSENABLED="${SONARR_ALT__LOG__ANALYTICSENABLED}"
+    [ -n "${SONARR_ALT__LOG__SYSLOGSERVER+x}" ]    && export SONARR__LOG__SYSLOGSERVER="${SONARR_ALT__LOG__SYSLOGSERVER}"
+    [ -n "${SONARR_ALT__LOG__SYSLOGPORT+x}" ]      && export SONARR__LOG__SYSLOGPORT="${SONARR_ALT__LOG__SYSLOGPORT}"
+    [ -n "${SONARR_ALT__LOG__SYSLOGLEVEL+x}" ]     && export SONARR__LOG__SYSLOGLEVEL="${SONARR_ALT__LOG__SYSLOGLEVEL}"
+    [ -n "${SONARR_ALT__LOG__DBENABLED+x}" ]       && export SONARR__LOG__DBENABLED="${SONARR_ALT__LOG__DBENABLED}"
+    [ -n "${SONARR_ALT__POSTGRES__HOST+x}" ]       && export SONARR__POSTGRES__HOST="${SONARR_ALT__POSTGRES__HOST}"
+    [ -n "${SONARR_ALT__POSTGRES__PORT+x}" ]       && export SONARR__POSTGRES__PORT="${SONARR_ALT__POSTGRES__PORT}"
+    [ -n "${SONARR_ALT__POSTGRES__USER+x}" ]       && export SONARR__POSTGRES__USER="${SONARR_ALT__POSTGRES__USER}"
+    [ -n "${SONARR_ALT__POSTGRES__PASSWORD+x}" ]   && export SONARR__POSTGRES__PASSWORD="${SONARR_ALT__POSTGRES__PASSWORD}"
+    [ -n "${SONARR_ALT__POSTGRES__MAINDB+x}" ]     && export SONARR__POSTGRES__MAINDB="${SONARR_ALT__POSTGRES__MAINDB}"
+    [ -n "${SONARR_ALT__POSTGRES__LOGDB+x}" ]      && export SONARR__POSTGRES__LOGDB="${SONARR_ALT__POSTGRES__LOGDB}"
+    [ -n "${SONARR_ALT__SERVER__URLBASE+x}" ]      && export SONARR__SERVER__URLBASE="${SONARR_ALT__SERVER__URLBASE}"
+    [ -n "${SONARR_ALT__SERVER__BINDADDRESS+x}" ]  && export SONARR__SERVER__BINDADDRESS="${SONARR_ALT__SERVER__BINDADDRESS}"
+    [ -n "${SONARR_ALT__SERVER__PORT+x}" ]         && export SONARR__SERVER__PORT="${SONARR_ALT__SERVER__PORT}"
+    [ -n "${SONARR_ALT__SERVER__ENABLESSL+x}" ]    && export SONARR__SERVER__ENABLESSL="${SONARR_ALT__SERVER__ENABLESSL}"
+    [ -n "${SONARR_ALT__SERVER__SSLPORT+x}" ]      && export SONARR__SERVER__SSLPORT="${SONARR_ALT__SERVER__SSLPORT}"
+    [ -n "${SONARR_ALT__SERVER__SSLCERTPATH+x}" ]  && export SONARR__SERVER__SSLCERTPATH="${SONARR_ALT__SERVER__SSLCERTPATH}"
+    [ -n "${SONARR_ALT__SERVER__SSLCERTPASSWORD+x}" ] && export SONARR__SERVER__SSLCERTPASSWORD="${SONARR_ALT__SERVER__SSLCERTPASSWORD}"
+    [ -n "${SONARR_ALT__UPDATE__MECHANISM+x}" ]    && export SONARR__UPDATE__MECHANISM="${SONARR_ALT__UPDATE__MECHANISM}"
+    [ -n "${SONARR_ALT__UPDATE__AUTOMATICALLY+x}" ] && export SONARR__UPDATE__AUTOMATICALLY="${SONARR_ALT__UPDATE__AUTOMATICALLY}"
+    [ -n "${SONARR_ALT__UPDATE__SCRIPTPATH+x}" ]   && export SONARR__UPDATE__SCRIPTPATH="${SONARR_ALT__UPDATE__SCRIPTPATH}"
+    [ -n "${SONARR_ALT__UPDATE__BRANCH+x}" ]       && export SONARR__UPDATE__BRANCH="${SONARR_ALT__UPDATE__BRANCH}"
+}
+
+sonarr_alt_bootstrap_filesystems() {
+    print_debug "Bootstrapping filesystem layout"
+    create_folder "${SONARR_ALT_CONFIG_PATH}" "${SONARR_USER}":"${SONARR_GROUP}" 750
+
+    if [ "${SONARR_ALT_LOG_TYPE,,}" = "file" ] || [ "${SONARR_ALT_LOG_TYPE,,}" = "both" ] ; then
+        create_folder "${SONARR_ALT_LOG_PATH}" "${SONARR_USER}":"${SONARR_GROUP}" 755
+        create_logrotate sonarr_alt "${SONARR_ALT_LOG_PATH%/}/${SONARR_ALT_LOG_FILE}" "${SONARR_USER}" "${SONARR_USER}" "${SONARR_GROUP}"
+    fi
+}
+
+sonarr_alt_configure_application() {
+    local _config_file="${SONARR_ALT_CONFIG_PATH%/}/config.xml"
+
+    _sonarr_alt_xml_set() {
+        xmlstarlet ed -L \
+            -d "/Config/${1}" \
+            -s "/Config" -t elem -n "${1}" -v "${2}" \
+            "${_config_file}"
+    }
+
+    if [ ! -f "${_config_file}" ] ; then
+        print_notice "Generating initial configuration at '${_config_file}'"
+        write_file "${SONARR_USER}":"${SONARR_GROUP}"@"${_config_file}":640 << EOF
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+  <BindAddress>${SONARR_ALT_LISTEN_IP}</BindAddress>
+  <Port>${SONARR_ALT_LISTEN_PORT}</Port>
+  <SslPort>${SONARR_ALT_LISTEN_SSL_PORT}</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${SONARR_ALT_API_KEY}</ApiKey>
+  <AuthenticationMethod>None</AuthenticationMethod>
+  <AuthenticationRequired>Enabled</AuthenticationRequired>
+  <Branch>${SONARR_ALT_UPDATE_BRANCH}</Branch>
+  <LogLevel>${SONARR_ALT_LOG_LEVEL}</LogLevel>
+  <UrlBase>${SONARR_ALT_URL_BASE}</UrlBase>
+  <InstanceName>${SONARR_ALT_INSTANCE_NAME}</InstanceName>
+</Config>
+EOF
+    else
+        print_debug "Updating existing configuration at '${_config_file}'"
+        _sonarr_alt_xml_set BindAddress            "${SONARR_ALT_LISTEN_IP}"
+        _sonarr_alt_xml_set Port                   "${SONARR_ALT_LISTEN_PORT}"
+        _sonarr_alt_xml_set SslPort                "${SONARR_ALT_LISTEN_SSL_PORT}"
+        _sonarr_alt_xml_set EnableSsl              "False"
+        _sonarr_alt_xml_set LaunchBrowser          "False"
+        _sonarr_alt_xml_set Branch                 "${SONARR_ALT_UPDATE_BRANCH}"
+        _sonarr_alt_xml_set LogLevel               "${SONARR_ALT_LOG_LEVEL}"
+        _sonarr_alt_xml_set UrlBase                "${SONARR_ALT_URL_BASE}"
+        _sonarr_alt_xml_set InstanceName           "${SONARR_ALT_INSTANCE_NAME}"
+        [ -n "${SONARR_ALT_API_KEY}" ] && _sonarr_alt_xml_set ApiKey "${SONARR_ALT_API_KEY}"
+    fi
+
+    unset -f _sonarr_alt_xml_set
+}

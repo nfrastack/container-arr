@@ -1,0 +1,39 @@
+services:
+  arr-app:
+    image: docker.io/nfrastack/arr:latest
+    container_name: arr-app
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.arr-app.rule=Host(`arr.example.com`)
+      - traefik.http.services.arr-app.loadbalancer.server.port=80
+    volumes:
+      - ./config:/config
+      - ./data:/data
+      - ./logs/:/logs/
+    environment:
+      - TIMEZONE=America/Vancouver
+      - MODE=qbittorrent,sonarr,prowlarr,radarr
+
+      ## qBittorrent
+      #- QBITTORRENT_UI_LISTEN_PORT=8080
+      #- QBITTORRENT_TORRENT_LISTEN_PORT=6881
+      #- QBITTORRENT_SAVE_PATH=/data/qbittorrent/downloads/
+      #- QBITTORRENT_TEMP_PATH=/data/qbittorrent/temp/
+      #- QBITTORRENT_QUEUEING_SYSTEM_ENABLED=TRUE
+      #- QBITTORRENT_GLOBAL_MAX_RATIO=0.1
+      #- QBITTORRENT_GLOBAL_MAX_SEEDING_MINUTES=1
+      #- QBITTORRENT_GLOBAL_MAX_INACTIVE_SEEDING_MINUTES=1
+      #- QBITTORRENT_SHARE_LIMIT_ACTION=Stop
+      #- QBITTORRENT_ADD_TORRENT_STOPPED=FALSE
+      #- QBITTORRENT_REVERSE_PROXY_SUPPORT_ENABLED=TRUE
+      #- QBITTORRENT_TRUSTED_REVERSE_PROXIES_LIST=172.16.0.0/12
+      #- QBITTORRENT_PORT_FORWARDING_ENABLED=FALSE
+      #- QBITTORRENT_AUTO_DELETE_ADDED_TORRENT_FILE=IfAdded
+
+    networks:
+      - proxy
+    restart: always
+
+networks:
+  proxy:
+    external: true

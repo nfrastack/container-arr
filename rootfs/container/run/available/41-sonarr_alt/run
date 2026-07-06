@@ -1,0 +1,33 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+SERVICE_NAME="sonarr_alt"
+prepare_service 20-arr
+prepare_service 41-sonarr_alt
+
+check_container_initialized
+check_service_initialized init
+
+liftoff
+
+print_start "Starting Sonarr (Alt) $(grep -o "ADD: Sonarr v.* |" /container/build/${IMAGE_NAME/\//_}/build.log | awk '{print $3}')"
+case "${SONARR_ALT_LOG_TYPE,,}" in
+    file)
+        exec 1>>"${SONARR_ALT_LOG_PATH%/}/${SONARR_ALT_LOG_FILE}" 2>&1
+        ;;
+    both)
+        exec 1> >(tee -a "${SONARR_ALT_LOG_PATH%/}/${SONARR_ALT_LOG_FILE}") 2>&1
+        ;;
+esac
+
+sonarr_alt_remap_variables
+
+cd /opt/sonarr
+
+sudo -u "${SONARR_USER}" \
+    /opt/sonarr/Sonarr \
+        -nobrowser \
+        -data="${SONARR_CONFIG_PATH}"

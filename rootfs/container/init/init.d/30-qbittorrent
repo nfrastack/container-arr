@@ -1,0 +1,28 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+prepare_service 20-arr
+prepare_service 30-qbittorrent
+SERVICE_NAME="qbittorrent"
+
+source /container/state/arr/mode
+
+if var_false "${ENABLE_QBITTORRENT}" ; then
+    service_stop $(basename $0)
+    liftoff
+    exit 0
+fi
+
+if check_container_restarted ; then
+    call qbittorrent_bootstrap_filesystems
+    if [ "${QBITTORRENT_SETUP_TYPE,,}" = "auto" ] ; then
+        call qbittorrent_configure_application
+    else
+        print_notice "[qbittorrent] Skipping configuration generation as QBITTORRENT_SETUP_TYPE='${QBITTORRENT_SETUP_TYPE}'"
+    fi
+fi
+
+liftoff

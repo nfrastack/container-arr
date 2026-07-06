@@ -1,0 +1,16 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+prepare_service 20-arr
+SERVICE_NAME="arr"
+
+arr_setup_container_mode
+create_folder "${CONFIG_PATH%/}" "${ARR_USER}":"${ARR_GROUP}" 775
+
+custom_files "${CONTAINER_CUSTOM_PATH}" /
+custom_scripts "${CONTAINER_CUSTOM_SCRIPTS_PATH}"
+
+liftoff

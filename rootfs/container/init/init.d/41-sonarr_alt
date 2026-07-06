@@ -1,0 +1,29 @@
+#!/command/with-contenv bash
+# SPDX-FileCopyrightText: © 2026 Nfrastack <code@nfrastack.com>
+#
+# SPDX-License-Identifier: MIT
+
+source /container/base/functions/container/init
+prepare_service 20-arr,41-sonarr_alt
+SERVICE_NAME="sonarr_alt"
+
+source /container/state/arr/mode
+
+if var_false "${ENABLE_SONARR_ALT}" ; then
+    print_debug "[sonarr_alt] Disabled via ENABLE_SONARR_ALT"
+    service_stop $(basename $0)
+    liftoff
+    exit 0
+fi
+
+if check_container_restarted ; then
+    call sonarr_alt_bootstrap_filesystems
+
+    if [ "${SONARR_ALT_SETUP_TYPE,,}" = "auto" ] ; then
+        call sonarr_alt_configure_application
+    else
+        print_notice "[sonarr_alt] Skipping config generation as SONARR_ALT_SETUP_TYPE='${SONARR_ALT_SETUP_TYPE}'"
+    fi
+fi
+
+liftoff
