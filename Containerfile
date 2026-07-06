@@ -31,7 +31,7 @@ ARG \
     PROWLARR_VERSION="v2.4.0.5397" \
     PROWLARR_BRANCH="master" \
     PROWLARR_REPO_URL="https://github.com/Prowlarr/Prowlarr" \
-    QBITTORRENT_VERSION="release-5.2.1" \
+    QBITTORRENT_VERSION="release-5.2.2" \
     QBITTORRENT_REPO_URL="https://github.com/qbittorrent/qBittorrent"
 
 ENV \
