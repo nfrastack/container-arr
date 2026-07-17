@@ -25,13 +25,13 @@ ARG \
     SONARR_VERSION="v4.0.19.2979" \
     SONARR_BRANCH="main" \
     SONARR_REPO_URL="https://github.com/Sonarr/Sonarr" \
-    RADARR_VERSION="v6.2.1.10461" \
+    RADARR_VERSION="v6.3.0.10514" \
     RADARR_BRANCH="master" \
     RADARR_REPO_URL="https://github.com/Radarr/Radarr" \
     PROWLARR_VERSION="v2.4.0.5397" \
     PROWLARR_BRANCH="master" \
     PROWLARR_REPO_URL="https://github.com/Prowlarr/Prowlarr" \
-    QBITTORRENT_VERSION="release-5.2.2" \
+    QBITTORRENT_VERSION="release-5.2.3" \
     QBITTORRENT_REPO_URL="https://github.com/qbittorrent/qBittorrent"
 
 ENV \
