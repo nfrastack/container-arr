@@ -53,10 +53,10 @@ qbittorrent_configure_application() {
         fi
 
         if grep -q "^\[${_s}\]" "$_f" 2>/dev/null; then
-            if sed -n "/^\[${_s}\]/,/^\[/{/^${_k}=/p}" "$_f" | grep -q .; then
-                sed -i "/^\[${_s}\]/,/^\[/ s|^${_kp}=.*|${_k}=${_vr}|" "$_f"
+            if sed -n "/^\[${_s}\]/,/^\[/{/^${_kp}=/p}" "$_f" | grep -q .; then
+                sed -i "/^\[${_s}\]/,/^\[/ s|^${_kp}=.*|${_kp}=${_vr}|" "$_f"
             else
-                sed -i "/^\[${_s}\]/a\\${_k}=${_vr}" "$_f"
+                sed -i "/^\[${_s}\]/a\\${_kp}=${_vr}" "$_f"
             fi
         else
             printf '\n[%s]\n%s=%s\n' "$_s" "$_k" "$_v" >> "$_f"
@@ -65,9 +65,10 @@ qbittorrent_configure_application() {
 
     _ini_delete() {
         local _f="$1" _s="$2" _k="$3"
+        local _kp="${_k//\\/\\\\}"
         [ -f "$_f" ] || return
         grep -q "^\[${_s}\]" "$_f" 2>/dev/null || return
-        sed -i "/^\[${_s}\]/,/^\[/{/^${_k}=/d}" "$_f"
+        sed -i "/^\[${_s}\]/,/^\[/{/^${_kp}=/d}" "$_f"
     }
 
     _qb_set() {
@@ -95,7 +96,6 @@ qbittorrent_configure_application() {
 [LegalNotice]
 Accepted=true
 EOF
-
         _qb_set "${QBITTORRENT_SAVE_PATH}" BitTorrent 'Session\DefaultSavePath' path
         _qb_set "${QBITTORRENT_TEMP_PATH}" BitTorrent 'Session\TempPath' path
         _qb_set "${QBITTORRENT_TORRENT_LISTEN_PORT}" BitTorrent 'Session\Port'
