@@ -22,16 +22,16 @@ COPY LICENSE /usr/src/container/LICENSE
 COPY README.md /usr/src/container/README.md
 
 ARG \
-    SONARR_VERSION="v4.0.19.2979" \
+    SONARR_VERSION="v4.0.20.3014" \
     SONARR_BRANCH="main" \
     SONARR_REPO_URL="https://github.com/Sonarr/Sonarr" \
-    RADARR_VERSION="v6.3.0.10514" \
+    RADARR_VERSION="v6.4.4.10685" \
     RADARR_BRANCH="master" \
     RADARR_REPO_URL="https://github.com/Radarr/Radarr" \
-    PROWLARR_VERSION="v2.4.0.5397" \
+    PROWLARR_VERSION="v2.6.5.5623" \
     PROWLARR_BRANCH="master" \
     PROWLARR_REPO_URL="https://github.com/Prowlarr/Prowlarr" \
-    QBITTORRENT_VERSION="release-5.2.3" \
+    QBITTORRENT_VERSION="release-5.2.4" \
     QBITTORRENT_REPO_URL="https://github.com/qbittorrent/qBittorrent"
 
 ENV \
